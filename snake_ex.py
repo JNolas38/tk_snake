@@ -2,7 +2,7 @@ from tkinter import *
 import tkinter as tk
 import random
 
-GAME_WIDTH = 1000
+GAME_WIDTH = 1000   #initializes the constants
 GAME_HEIGHT = 600
 SPACE_SIZE = 50
 BODY_PARTS = 5
@@ -35,20 +35,27 @@ class Point:
 
         screen.create_oval(x, y, x+SPACE_SIZE, y+SPACE_SIZE, fill=POINT_COLOUR, tag="point") #creates a point at random x, y coordinates
 
-def start_game():
-    snake = Snake()
-    point = Point()
-    label.config(text="Score:{}".format(score))
+def aux_forget():   #auxilary function that deletes everything from the screen
+    screen.delete(ALL)
     start_btn.place_forget()
     spd_btn.place_forget()
     plusspd_button.place_forget()
     minusspd_button.place_forget()
     speedometer.place_forget()
+    hiscore_btn.place_forget()
+    restart_btn.place_forget()
 
-    next_turn(snake, point)         #starts the game again
+
+def start_game():
+    aux_forget()
+    snake = Snake()
+    point = Point()
+    label.config(text="Score:{}".format(score))
+
+    next_turn(snake, point)         #starts the game proper
 
 
-def next_turn(snake, point):
+def next_turn(snake, point):    #this function makes the calculations for the next movement in the game and is looped until the game is over
     global speed
 
     x, y = snake.coordinates[0] #select snakes head
@@ -116,7 +123,7 @@ def change_direction(new_direction):
     elif new_direction == "up" and direction != "down":
         direction = new_direction
 
-def check_colision(snake):
+def check_colision(snake):  #returns true if the snake's head collides with another part of its body
     
     x, y = snake.coordinates[0]
 
@@ -130,8 +137,7 @@ def restart():
     global score
     global direction
 
-    screen.delete(ALL)              #resets everything to initial values
-    restart_btn.place_forget()
+    aux_forget()                    #resets everything necessary
     snake = Snake()
     point = Point()
     score = 0
@@ -140,12 +146,28 @@ def restart():
 
     next_turn(snake, point)         #starts the game again
 
-def game_over():
-    
-    screen.delete(ALL)
-    screen.create_text(screen.winfo_width()/2, screen.winfo_height()/2, font=("consolas", 70), text="GAME OVER", fill="red")
+def game_over():    #prints the necessary information forthe game over screen
+    global score
 
-    restart_btn.place (x=1, y=1)
+    screen.delete(ALL)
+    screen.create_text(screen.winfo_width()/2, screen.winfo_height()/3, font=("consolas", 70), text="GAME OVER", fill="red")
+    screen.create_text(screen.winfo_width()/2, screen.winfo_height()/2, font=("consolas", 50), text="HI-SCORES", fill="red")
+
+    for n in range(5):
+        if score > hiscores[n]:
+            if n == 1:
+                hiscores.insert(1, score)
+                screen.create_text(screen.winfo_width()/2, (screen.winfo_height()/2)+100, font=("consolas", 35), text="Score:{}".format(hiscores[n]), fill="red")
+                hiscores.pop()
+            else:
+                hiscores.insert(n, score)
+                screen.create_text(screen.winfo_width()/2, (screen.winfo_height()/2)+(n+1)*50, font=("consolas", 35), text="Score:{}".format(hiscores[n]), fill="red")
+                hiscores.pop()
+            score = 0
+        else:
+            screen.create_text(screen.winfo_width()/2, (screen.winfo_height()/2)+(n+1)*50, font=("consolas", 35), text="Score:{}".format(hiscores[n]), fill="red")
+
+    restart_btn.place (x=((screen.winfo_width()/2)-120), y=1)
 
 def change_speed(symbol):
     global speed
@@ -156,6 +178,19 @@ def change_speed(symbol):
         speed += 10
 
     speedometer.config(text="Speed:{}".format(int(10-(speed/10))) )
+
+def show_scores():
+    screen.create_text(screen.winfo_width()/2, (screen.winfo_height()/3)-50, font=("consolas", 70), text="HI-SCORES:", fill="red")
+
+    aux_forget()
+    start_btn.place (x=1, y=1)
+
+    for n in range(5):
+        if n == 1:
+            screen.create_text(screen.winfo_width()/2, (screen.winfo_height()/2), font=("consolas", 35), text="Score:{}".format(hiscores[n]), fill="red")
+        else:
+            screen.create_text(screen.winfo_width()/2, (screen.winfo_height()/2)+(n-1)*50, font=("consolas", 35), text="Score:{}".format(hiscores[n]), fill="red")
+
     
 
 root = Tk()
@@ -165,6 +200,7 @@ root.title = "snake game"
 score = 0
 direction = "right"
 speed = 50
+hiscores = [0, 0, 0, 0, 0]
 
 label = Label(root, text="Score:{}".format(score), font=("consolas", 40))
 label.pack()
@@ -173,7 +209,7 @@ screen = Canvas(root, bg=BG_COLOUR, height = GAME_HEIGHT, width = GAME_WIDTH)
 screen.pack()
 
 speedometer = Label(screen, text="Speed:{}".format(int(speed/10)), font=("consolas", 40))
-speedometer.place (x= ((GAME_WIDTH - SPACE_SIZE)/2), y=200)
+speedometer.place(x=1, y=1)
 
 root.update()
 
@@ -196,12 +232,13 @@ restart_btn = tk.Button(screen, font=("consolas", 35), text="RESTART", bg="red",
 spd_btn = tk.Button(screen, font=("consolas", 35), text="change speed", bg="red", fg="black", state= "disabled")
 plusspd_button = tk.Button(screen, font=("consolas", 35), text=">", bg="red", fg="black", command=lambda: change_speed("+"))
 minusspd_button = tk.Button(screen, font=("consolas", 35), text="<", bg="red", fg="black", command=lambda: change_speed("-"))
+hiscore_btn = tk.Button(screen, font=("consolas", 35), text="HI-SCORES", bg="red", fg="black", command= show_scores)
 
-start_btn.place (x= ((GAME_WIDTH - SPACE_SIZE)/2), y=1)
-spd_btn.place (x= ((GAME_WIDTH - SPACE_SIZE)/2), y=100)
-plusspd_button.place (x= ((GAME_WIDTH - SPACE_SIZE)/2)+350, y=100)
-minusspd_button.place (x= ((GAME_WIDTH - SPACE_SIZE)/2)-50, y=100)
-
+start_btn.place (x= ((screen.winfo_width())/2)-80, y=1)
+spd_btn.place (x= ((screen.winfo_width())/2)-80, y=100)
+plusspd_button.place (x= ((screen.winfo_width())/2)-80+350, y=100)
+minusspd_button.place (x= ((screen.winfo_width())/2)-80-50, y=100)
+hiscore_btn.place (x= ((screen.winfo_width())/2)-80, y=200)
 
 
 root.mainloop()
