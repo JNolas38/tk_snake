@@ -26,10 +26,9 @@ class Snake:
 
 class Point:
     
-    def __init__(self):
-        
-        x = random.randint(0, (GAME_WIDTH/SPACE_SIZE)-1) * SPACE_SIZE
-        y = random.randint(0, (GAME_HEIGHT/SPACE_SIZE)-1) * SPACE_SIZE
+    def __init__(self, snake):
+
+        x, y = aux_random(snake)
 
         self.coordinates = [x, y]
 
@@ -45,11 +44,26 @@ def aux_forget():   #auxilary function that deletes everything from the screen
     hiscore_btn.place_forget()
     restart_btn.place_forget()
 
+def aux_random(snake):  #auxilary function that ensures the point doesn't spawn inside the snake
+    global score
+
+    x = random.randint(0, (GAME_WIDTH/SPACE_SIZE)-1) * SPACE_SIZE   #generates random coordinates for the point
+    y = random.randint(0, (GAME_HEIGHT/SPACE_SIZE)-1) * SPACE_SIZE
+
+    coordinates = [x, y]
+    
+    for i in range (0, score+BODY_PARTS):
+        a, b = snake.coordinates[i]
+
+        if coordinates == [a, b]:   #if the point has the same coordinates as a body part of the snake calls the function again         
+            return aux_random(snake) #and loops until the coordinates dont match
+    return coordinates
+
 
 def start_game():
     aux_forget()
     snake = Snake()
-    point = Point()
+    point = Point(snake)
     label.config(text="Score:{}".format(score))
 
     next_turn(snake, point)         #starts the game proper
@@ -97,7 +111,7 @@ def next_turn(snake, point):    #this function makes the calculations for the ne
 
         screen.delete("point")
 
-        point = Point()
+        point = Point(snake)
 
     else:                                                       #deletes last body part to simulate movement
         del snake.coordinates[-1]
@@ -139,7 +153,7 @@ def restart():
 
     aux_forget()                    #resets everything necessary
     snake = Snake()
-    point = Point()
+    point = Point(snake)
     score = 0
     direction = "right"
     label.config(text="Score:{}".format(score))

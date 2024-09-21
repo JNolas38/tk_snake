@@ -29,14 +29,28 @@ class Snake:
 
 class Point:
     
-    def __init__(self):
-        
-        x = random.randint(0, (GAME_WIDTH/SPACE_SIZE)-1) * SPACE_SIZE
-        y = random.randint(0, (GAME_HEIGHT/SPACE_SIZE)-1) * SPACE_SIZE
+    def __init__(self, snake):
+
+        x, y = aux_random(snake)
 
         self.coordinates = [x, y]
 
         screen.create_oval(x, y, x+SPACE_SIZE, y+SPACE_SIZE, fill=POINT_COLOUR, tag="point") #creates a point at random x, y coordinates
+
+def aux_random(snake):  #auxilary function that ensures the point doesn't spawn inside the snake
+    global score
+
+    x = random.randint(0, (GAME_WIDTH/SPACE_SIZE)-1) * SPACE_SIZE   #generates random coordinates for the point
+    y = random.randint(0, (GAME_HEIGHT/SPACE_SIZE)-1) * SPACE_SIZE
+
+    coordinates = [x, y]
+    
+    for i in range (0, score+BODY_PARTS):
+        a, b = snake.coordinates[i]
+
+        if coordinates == [a, b]:   #if the point has the same coordinates as a body part of the snake calls the function again
+            return aux_random(snake) #and loops until the coordinates dont match
+    return coordinates
 
 def next_turn(snake, point):
 
@@ -79,7 +93,7 @@ def next_turn(snake, point):
 
         screen.delete("point")
 
-        point = Point()
+        point = Point(snake)
 
     else:                                                       #deletes last body part to simulate movement
         del snake.coordinates[-1]
@@ -150,7 +164,7 @@ root.bind('<s>', lambda event: change_direction("down"))
 root.bind('<w>', lambda event: change_direction("up"))
 
 snake = Snake()
-point = Point()
+point = Point(snake)
 next_turn(snake, point) #start game by calling the next_turn function
 
 root.mainloop()
