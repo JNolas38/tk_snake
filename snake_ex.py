@@ -1,6 +1,7 @@
 from tkinter import *
 import tkinter as tk
 import random
+import os
 
 GAME_WIDTH = 1000   #initializes the constants
 GAME_HEIGHT = 600
@@ -167,8 +168,10 @@ def game_over():    #prints the necessary information forthe game over screen
     screen.create_text(screen.winfo_width()/2, screen.winfo_height()/3, font=("consolas", 70), text="GAME OVER", fill="red")
     screen.create_text(screen.winfo_width()/2, screen.winfo_height()/2, font=("consolas", 50), text="HI-SCORES", fill="red")
 
+    final_scores = ""
+
     for n in range(5):
-        if score > hiscores[n]:
+        if score > int(hiscores[n]):
             if n == 1:
                 hiscores.insert(1, score)
                 screen.create_text(screen.winfo_width()/2, (screen.winfo_height()/2)+100, font=("consolas", 35), text="Score:{}".format(hiscores[n]), fill="red")
@@ -180,6 +183,12 @@ def game_over():    #prints the necessary information forthe game over screen
             score = 0
         else:
             screen.create_text(screen.winfo_width()/2, (screen.winfo_height()/2)+(n+1)*50, font=("consolas", 35), text="Score:{}".format(hiscores[n]), fill="red")
+        
+        final_scores += str(hiscores[n]) + " "
+
+    f = open("hiscores.txt", "w")
+    f.write(final_scores)
+    f.close()
 
     restart_btn.place (x=((screen.winfo_width()/2)-120), y=1)
 
@@ -214,7 +223,16 @@ root.title = "snake game"
 score = 0
 direction = "right"
 speed = 50
-hiscores = [0, 0, 0, 0, 0]
+
+if not os.path.isfile("hiscores.txt"):
+    temp_scores = "0 0 0 0 0"
+    hiscores = temp_scores.split()
+else:
+    f = open("hiscores.txt", "r")
+    temp_scores = f.readline()
+    hiscores = temp_scores.split()
+    f.close()
+
 
 label = Label(root, text="Score:{}".format(score), font=("consolas", 40))
 label.pack()
