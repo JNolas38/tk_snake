@@ -44,6 +44,16 @@ def aux_forget():   #auxilary function that deletes everything from the screen
     speedometer.place_forget()
     hiscore_btn.place_forget()
     restart_btn.place_forget()
+    return_btn.place_forget()
+    reset_btn.place_forget()
+
+def aux_start_menu():   #auxilary functions that calls all the main menu elements
+    start_btn.place (x= ((screen.winfo_width())/2)-80, y=1)
+    spd_btn.place (x= ((screen.winfo_width())/2)-80, y=100)
+    plusspd_button.place (x= ((screen.winfo_width())/2)-80+350, y=100)
+    minusspd_button.place (x= ((screen.winfo_width())/2)-80-50, y=100)
+    hiscore_btn.place (x= ((screen.winfo_width())/2)-80, y=200)
+    speedometer.place(x=1, y=1)
 
 def aux_random(snake):  #auxilary function that ensures the point doesn't spawn inside the snake
     global score
@@ -53,7 +63,7 @@ def aux_random(snake):  #auxilary function that ensures the point doesn't spawn 
 
     coordinates = [x, y]
     
-    for i in range (0, score+BODY_PARTS):
+    for i in range (0, int(score/(int(10-(speed/10))))+BODY_PARTS):
         a, b = snake.coordinates[i]
 
         if coordinates == [a, b]:   #if the point has the same coordinates as a body part of the snake calls the function again         
@@ -106,7 +116,7 @@ def next_turn(snake, point):    #this function makes the calculations for the ne
 
     if x == point.coordinates[0] and y == point.coordinates[1]: #if a point is taken create a new body part
         global score
-        score += 1
+        score += (int(10-(speed/10)))
 
         label.config(text="Score:{}".format(score))
 
@@ -164,25 +174,20 @@ def restart():
 def game_over():    #prints the necessary information forthe game over screen
     global score
 
-    screen.delete(ALL)
-    screen.create_text(screen.winfo_width()/2, screen.winfo_height()/3, font=("consolas", 70), text="GAME OVER", fill="red")
-    screen.create_text(screen.winfo_width()/2, screen.winfo_height()/2, font=("consolas", 50), text="HI-SCORES", fill="red")
+    aux_forget()
+    screen.create_text(screen.winfo_width()/2, (screen.winfo_height()/3 +45), font=("consolas", 70), text="GAME OVER", fill="red")
+    screen.create_text(screen.winfo_width()/2, (screen.winfo_height()/2 +15), font=("consolas", 50), text="HI-SCORES:", fill="red")
 
     final_scores = ""
 
     for n in range(5):
         if score > int(hiscores[n]):
-            if n == 1:
-                hiscores.insert(1, score)
-                screen.create_text(screen.winfo_width()/2, (screen.winfo_height()/2)+100, font=("consolas", 35), text="Score:{}".format(hiscores[n]), fill="red")
-                hiscores.pop()
-            else:
-                hiscores.insert(n, score)
-                screen.create_text(screen.winfo_width()/2, (screen.winfo_height()/2)+(n+1)*50, font=("consolas", 35), text="Score:{}".format(hiscores[n]), fill="red")
-                hiscores.pop()
+            hiscores.insert(n, score)
+            screen.create_text(screen.winfo_width()/2, ((screen.winfo_height()/2)+(n+1)*50 +20), font=("consolas", 35), text="Score:{}".format(hiscores[n]), fill="red")
+            hiscores.pop()
             score = 0
         else:
-            screen.create_text(screen.winfo_width()/2, (screen.winfo_height()/2)+(n+1)*50, font=("consolas", 35), text="Score:{}".format(hiscores[n]), fill="red")
+            screen.create_text(screen.winfo_width()/2, ((screen.winfo_height()/2)+(n+1)*50 +20), font=("consolas", 35), text="Score:{}".format(hiscores[n]), fill="red")
         
         final_scores += str(hiscores[n]) + " "
 
@@ -191,22 +196,28 @@ def game_over():    #prints the necessary information forthe game over screen
     f.close()
 
     restart_btn.place (x=((screen.winfo_width()/2)-120), y=1)
+    return_btn.place (x= ((screen.winfo_width())/2)-90, y=100)
+
 
 def change_speed(symbol):
     global speed
 
     if symbol == "+":
-        speed -= 10
+        if speed > 10:
+            speed -= 10
     else:
-        speed += 10
+        if speed < 100:
+            speed += 10
 
     speedometer.config(text="Speed:{}".format(int(10-(speed/10))) )
 
-def show_scores():
+def show_scores(hiscores):
     screen.create_text(screen.winfo_width()/2, (screen.winfo_height()/3)-50, font=("consolas", 70), text="HI-SCORES:", fill="red")
 
     aux_forget()
-    start_btn.place (x=1, y=1)
+    start_btn.place (x= ((screen.winfo_width())/2)-80, y=1)
+    return_btn.place (x= ((screen.winfo_width())/2)-90, y=100)
+    reset_btn.place (x=1, y=1)
 
     for n in range(5):
         if n == 1:
@@ -214,6 +225,17 @@ def show_scores():
         else:
             screen.create_text(screen.winfo_width()/2, (screen.winfo_height()/2)+(n-1)*50, font=("consolas", 35), text="Score:{}".format(hiscores[n]), fill="red")
 
+def return_to_menu():
+    aux_forget()
+    aux_start_menu()
+
+def reset_scores():
+    temp_scores = "0 0 0 0 0"
+    hiscores = temp_scores.split()
+    f = open("hiscores.txt", "w")
+    f.write(temp_scores)
+    f.close()
+    show_scores(hiscores)
     
 
 root = Tk()
@@ -241,7 +263,6 @@ screen = Canvas(root, bg=BG_COLOUR, height = GAME_HEIGHT, width = GAME_WIDTH)
 screen.pack()
 
 speedometer = Label(screen, text="Speed:{}".format(int(speed/10)), font=("consolas", 40))
-speedometer.place(x=1, y=1)
 
 root.update()
 
@@ -264,13 +285,10 @@ restart_btn = tk.Button(screen, font=("consolas", 35), text="RESTART", bg="red",
 spd_btn = tk.Button(screen, font=("consolas", 35), text="change speed", bg="red", fg="black", state= "disabled")
 plusspd_button = tk.Button(screen, font=("consolas", 35), text=">", bg="red", fg="black", command=lambda: change_speed("+"))
 minusspd_button = tk.Button(screen, font=("consolas", 35), text="<", bg="red", fg="black", command=lambda: change_speed("-"))
-hiscore_btn = tk.Button(screen, font=("consolas", 35), text="HI-SCORES", bg="red", fg="black", command= show_scores)
+hiscore_btn = tk.Button(screen, font=("consolas", 35), text="HI-SCORES", bg="red", fg="black", command=lambda: show_scores(hiscores))
+return_btn = tk.Button(screen, font=("consolas", 35), text="RETURN", bg="red", fg="black", command= return_to_menu)
+reset_btn = tk.Button(screen, font=("consolas", 35), text="RESET", bg="red", fg="black", command= reset_scores)
 
-start_btn.place (x= ((screen.winfo_width())/2)-80, y=1)
-spd_btn.place (x= ((screen.winfo_width())/2)-80, y=100)
-plusspd_button.place (x= ((screen.winfo_width())/2)-80+350, y=100)
-minusspd_button.place (x= ((screen.winfo_width())/2)-80-50, y=100)
-hiscore_btn.place (x= ((screen.winfo_width())/2)-80, y=200)
-
+aux_start_menu()
 
 root.mainloop()
